@@ -9,7 +9,7 @@ import (
 var (
 	options struct {
 		ifdev string
-		port  int
+		port  string
 	}
 
 	startedAt time.Time
@@ -17,11 +17,11 @@ var (
 
 func init() {
 	flag.StringVar(&options.ifdev, "i", "eth0", "device")
-	flag.IntVar(&options.port, "p", 0, "port")
+	flag.StringVar(&options.port, "p", "", "port")
 
 	flag.Parse()
 
-	if options.port == 0 {
+	if options.port == "" {
 		flag.Usage()
 		os.Exit(0)
 	}

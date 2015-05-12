@@ -16,8 +16,9 @@ var (
 )
 
 func main() {
-	tcpdumpFlag := fmt.Sprintf("-i %s -nnN port %d", options.ifdev, options.port)
-	td := pipestream.New("tcpdump", tcpdumpFlag)
+	tcpdumpFlag := fmt.Sprintf("-i %s -nnN port %s", options.ifdev, options.port)
+	td := pipestream.New("/usr/sbin/tcpdump", "-i", options.ifdev,
+		"-nnN", "port", options.port)
 	if err := td.Open(); err != nil {
 		panic(err)
 	}
