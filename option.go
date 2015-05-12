@@ -14,6 +14,8 @@ var (
 	}
 
 	startedAt time.Time
+
+	lines []string = make([]string, 0, 1<<20)
 )
 
 func init() {

@@ -13,11 +13,9 @@ import (
 	"github.com/funkygao/golib/signal"
 )
 
-var (
-	lines []string = make([]string, 0, 1<<20)
-)
-
 func main() {
+	startedAt = time.Now()
+
 	tcpdumpFlag := []string{
 		"-i",
 		options.ifdev,
@@ -30,11 +28,9 @@ func main() {
 		panic(err)
 	}
 
-	startedAt = time.Now()
-
 	signal.RegisterSignalHandler(syscall.SIGINT, func(sig os.Signal) {
 		td.Close()
-		showReport()
+		showReportAndExit()
 	})
 
 	fmt.Printf("running /usr/sbin/tcpdump %s ...\n", strings.Join(tcpdumpFlag, " "))
@@ -53,18 +49,9 @@ func main() {
 		lines = append(lines, string(line))
 		if len(lines) == options.max {
 			td.Close()
-			showReport()
+			showReportAndExit()
 		}
 	}
 
 	select {}
-}
-
-func showReport() {
-	fmt.Printf("elapsed: %s\n", time.Since(startedAt))
-
-	fmt.Println(lines)
-
-	os.Exit(0)
-
 }
