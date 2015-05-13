@@ -48,6 +48,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 
 	}
 
+	retransmitSync := 0
 	for endpoint, trips := range rp {
 		fmt.Printf("%21s", endpoint)
 		if len(trips) > 1000 {
@@ -62,6 +63,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 				syncSentN++
 				if syncSentN > 1 {
 					// retransmit
+					retransmitSync++
 					t.flag = color.Colorize([]string{color.FgBlue, color.Blink},
 						t.flag)
 				} else {
@@ -78,6 +80,8 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 		}
 		fmt.Println()
 	}
+
+	fmt.Printf("sync retrans: %d\n", retransmitSync)
 
 	os.Exit(0)
 }
