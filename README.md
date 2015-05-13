@@ -12,3 +12,8 @@ Note: MUST be root to run this tcpdumper.
 - blink if SYN retransmit occurs
 
 ![sample](https://github.com/funkygao/tcpdumper/blob/master/.resources/sample.png)
+
+
+### TODO
+
+- [ ] output alignment problem
