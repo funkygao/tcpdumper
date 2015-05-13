@@ -81,7 +81,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 				resetN++
 				t.flag = color.Yellow(t.flag)
 			}
-			fmt.Printf(" %-2s", t.flag)
+			fmt.Printf(" %-3s", t.flag)
 		}
 		fmt.Println()
 	}
