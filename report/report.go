@@ -24,7 +24,7 @@ type trip struct {
 
 type report map[string][]trip
 
-func ShowReportAndExit(startedAt time.Time, lines []string) {
+func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	fmt.Printf("%d lines, elapsed: %s\n", len(lines), time.Since(startedAt))
 
 	var rp = make(report, 1<<10)
@@ -51,9 +51,10 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 
 	retransmitSync := 0
 	resetN := 0
+	port = "." + port
 	for endpoint, trips := range rp {
 		fmt.Printf("%21s", endpoint)
-		if len(trips) > 1000 {
+		if len(trips) > 1000 || strings.HasSuffix(endpoint, port) {
 			fmt.Printf(" skipped\n")
 			continue
 		}
