@@ -15,6 +15,7 @@ var errBadLine = errors.New("bad tcpdump output line")
 const (
 	SYNC_SEND = ">S"
 	FIN       = "F"
+	RST       = "R"
 )
 
 type trip struct {
@@ -49,6 +50,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 	}
 
 	retransmitSync := 0
+	resetN := 0
 	for endpoint, trips := range rp {
 		fmt.Printf("%21s", endpoint)
 		if len(trips) > 1000 {
@@ -75,13 +77,17 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 					t.flag = color.Red(t.flag)
 				}
 
+			} else if strings.Contains(t.flag, RST) {
+				resetN++
+				t.flag = color.Yellow(t.flag)
 			}
 			fmt.Printf(" %-2s", t.flag)
 		}
 		fmt.Println()
 	}
 
-	fmt.Printf("sync retrans: %d\n", retransmitSync)
+	fmt.Printf("sync retrans: %d, reset: %d\n",
+		retransmitSync, resetN)
 
 	os.Exit(0)
 }
