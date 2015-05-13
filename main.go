@@ -11,6 +11,7 @@ import (
 	"github.com/funkygao/golib/io"
 	"github.com/funkygao/golib/pipestream"
 	"github.com/funkygao/golib/signal"
+	"github.com/funkygao/tcpdumper/report"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 
 	signal.RegisterSignalHandler(syscall.SIGINT, func(sig os.Signal) {
 		td.Close()
-		showReportAndExit()
+		report.ShowReportAndExit(startedAt, lines)
 	})
 
 	fmt.Printf("running /usr/sbin/tcpdump %s ...\n", strings.Join(tcpdumpFlag, " "))
@@ -46,10 +47,13 @@ func main() {
 			break
 		}
 
-		lines = append(lines, string(line))
+		if len(line) > 0 {
+			lines = append(lines, string(line))
+		}
+
 		if len(lines) == options.max {
 			td.Close()
-			showReportAndExit()
+			report.ShowReportAndExit(startedAt, lines)
 		}
 	}
 
