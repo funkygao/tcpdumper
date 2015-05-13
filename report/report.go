@@ -86,7 +86,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string) {
 		fmt.Println()
 	}
 
-	fmt.Printf("sync retrans: %d, reset: %d\n",
+	fmt.Printf("SYN retrans: %d, RST: %d\n",
 		retransmitSync, resetN)
 
 	os.Exit(0)
