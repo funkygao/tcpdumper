@@ -30,6 +30,7 @@ type report map[string][]trip // key is endpoint
 func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	var rp = make(report, 1<<16)
 
+	t1 := time.Now()
 	for _, line := range lines {
 		src, dst, flag, err := lineInfo(line)
 		if err != nil {
@@ -110,14 +111,22 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		fmt.Println()
 	}
 
+	endpointN := len(rp)
+	if endpointN > 1 {
+		endpointN-- // the skipped endpoint excluded
+	}
+
 	fmt.Println(strings.Repeat("=", 78))
-	fmt.Printf("%d lines, elapsed: %s\n", len(lines), time.Since(startedAt))
+	fmt.Printf("%d lines, elapsed: %s processed: %s\n", len(lines),
+		time.Since(startedAt),
+		time.Since(t1))
 	fmt.Println(strings.Repeat("=", 78))
-	fmt.Printf("%21s%8d\n", "endpoint", len(rp))
-	fmt.Printf("%21s%8d\n", "incomplete handshakes", incompleteHandshakeN)
-	fmt.Printf("%21s%8d\n", "PUSH", pushN)
-	fmt.Printf("%21s%8d\n", "SYN retry", retransmitSynN)
-	fmt.Printf("%21s%8d\n", "RST", rstN)
+	fmt.Printf("%25s:%8d\n", "endpoint", endpointN)
+	fmt.Printf("%25s:%8d\n", "incomplete handshakes", incompleteHandshakeN)
+	fmt.Printf("%25s:%8d\n", "no PUSH", endpointN-pushN)
+	fmt.Printf("%25s:%8d\n", "PUSH", pushN)
+	fmt.Printf("%25s:%8d\n", "SYN retry", retransmitSynN)
+	fmt.Printf("%25s:%8d\n", "RST", rstN)
 
 	os.Exit(0)
 }
