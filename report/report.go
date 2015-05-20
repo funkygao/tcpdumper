@@ -13,9 +13,10 @@ import (
 var errBadLine = errors.New("bad tcpdump output line")
 
 const (
-	SYNC_SEND = ">S"
-	FIN       = "F"
-	RST       = "R"
+	SYN_SEND = ">S"
+	SYN_RECV = "<S"
+	FIN      = "F"
+	RST      = "R"
 )
 
 type trip struct {
@@ -51,6 +52,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 
 	retransmitSync := 0
 	resetN := 0
+	notHandshakedN := 0
 	port = "." + port
 	for endpoint, trips := range rp {
 		fmt.Printf("%21s", endpoint)
@@ -60,9 +62,13 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		}
 
 		syncSentN := 0
-		finN := 0
+		fin := false
+		rst := false
+		sentSync := false
+		recvSync := false
 		for _, t := range trips {
-			if t.flag == SYNC_SEND {
+			if t.flag == SYN_SEND {
+				sentSync = true
 				syncSentN++
 				if syncSentN > 1 {
 					// retransmit
@@ -72,23 +78,33 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 				} else {
 					t.flag = color.Blue(t.flag)
 				}
+			} else if strings.Contains(t.flag, SYN_RECV) {
+				recvSync = true
 			} else if strings.Contains(t.flag, FIN) {
-				finN++
-				if finN == 1 {
+				if !fin {
 					t.flag = color.Red(t.flag)
 				}
-
+				fin = true
 			} else if strings.Contains(t.flag, RST) {
-				resetN++
+				if !rst {
+					resetN++
+				}
+				rst = true
 				t.flag = color.Yellow(t.flag)
 			}
 			fmt.Printf(" %-3s", t.flag)
 		}
+
+		if sentSync && !recvSync {
+			notHandshakedN++
+		}
+
 		fmt.Println()
 	}
 
-	fmt.Printf("endpoint:%d, SYN retrans: %d, RST: %d\n",
+	fmt.Printf("endpoint:%d, handshake fails:%d, SYN retrans:%d, RST:%d\n",
 		len(rp)-1,
+		notHandshakedN,
 		retransmitSync, resetN)
 
 	os.Exit(0)
