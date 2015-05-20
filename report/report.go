@@ -27,7 +27,7 @@ type report map[string][]trip
 func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	fmt.Printf("%d lines, elapsed: %s\n", len(lines), time.Since(startedAt))
 
-	var rp = make(report, 1<<10)
+	var rp = make(report, 1<<16)
 
 	for _, line := range lines {
 		src, dst, flag, err := lineInfo(line)
@@ -87,7 +87,8 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		fmt.Println()
 	}
 
-	fmt.Printf("SYN retrans: %d, RST: %d\n",
+	fmt.Printf("endpoint:%d, SYN retrans: %d, RST: %d\n",
+		len(rp)-1,
 		retransmitSync, resetN)
 
 	os.Exit(0)
