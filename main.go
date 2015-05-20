@@ -37,6 +37,13 @@ func main() {
 	fmt.Printf("running /usr/sbin/tcpdump %s ...\n", strings.Join(tcpdumpFlag, " "))
 	fmt.Println("Ctrl-C to stop")
 
+	outfile, err := os.OpenFile(options.rawfile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer outfile.Close()
+
+	n := 0
 	for {
 		line, err := io.ReadLine(td.Reader())
 		if err != nil {
@@ -47,14 +54,25 @@ func main() {
 			break
 		}
 
-		if len(line) > 0 {
-			lines = append(lines, string(line))
+		if len(line) == 0 {
+			// empty line
+			continue
 		}
 
-		if len(lines) == options.max {
+		n++
+		if n == options.max {
 			td.Close()
 			report.ShowReportAndExit(startedAt, lines, options.port)
+			return
 		}
+
+		linestr := string(line)
+		lines = append(lines, linestr)
+		outfile.WriteString(linestr + "\n")
+		if n%500 == 0 {
+			outfile.Sync()
+		}
+
 	}
 
 	select {}

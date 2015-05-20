@@ -8,9 +8,10 @@ import (
 
 var (
 	options struct {
-		ifdev string
-		port  string
-		max   int
+		ifdev   string
+		port    string
+		rawfile string
+		max     int
 	}
 
 	startedAt time.Time
@@ -21,6 +22,7 @@ var (
 func init() {
 	flag.StringVar(&options.ifdev, "i", "eth0", "device")
 	flag.StringVar(&options.port, "p", "", "port")
+	flag.StringVar(&options.rawfile, "f", "tcpdump.out", "output file of tcpdump")
 	flag.IntVar(&options.max, "max", 1<<20, "max num of tcpdump output lines to collect")
 
 	flag.Parse()
