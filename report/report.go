@@ -17,22 +17,23 @@ const (
 	SYN_RECV = "<S"
 	FIN      = "F"
 	RST      = "R"
+	PUSH     = "P"
 )
 
+// a single tcp packet trip
 type trip struct {
 	src, dst, flag string
 }
 
-type report map[string][]trip
+type report map[string][]trip // key is endpoint
 
 func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
-	fmt.Printf("%d lines, elapsed: %s\n", len(lines), time.Since(startedAt))
-
 	var rp = make(report, 1<<16)
 
 	for _, line := range lines {
 		src, dst, flag, err := lineInfo(line)
 		if err != nil {
+			fmt.Println(err)
 			continue
 		}
 
@@ -50,13 +51,14 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 
 	}
 
-	retransmitSync := 0
-	resetN := 0
-	notHandshakedN := 0
+	retransmitSynN := 0
+	pushN := 0
+	rstN := 0
+	incompleteHandshakeN := 0
 	port = "." + port
 	for endpoint, trips := range rp {
 		fmt.Printf("%21s", endpoint)
-		if len(trips) > 1000 || strings.HasSuffix(endpoint, port) {
+		if strings.HasSuffix(endpoint, port) {
 			fmt.Printf(" skipped\n")
 			continue
 		}
@@ -66,13 +68,14 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		rst := false
 		sentSync := false
 		recvSync := false
+		push := false
 		for _, t := range trips {
 			if t.flag == SYN_SEND {
 				sentSync = true
 				syncSentN++
 				if syncSentN > 1 {
 					// retransmit
-					retransmitSync++
+					retransmitSynN++
 					t.flag = color.Colorize([]string{color.FgBlue, color.Blink},
 						t.flag)
 				} else {
@@ -87,25 +90,34 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 				fin = true
 			} else if strings.Contains(t.flag, RST) {
 				if !rst {
-					resetN++
+					rstN++
 				}
 				rst = true
 				t.flag = color.Yellow(t.flag)
+			} else if strings.Contains(t.flag, PUSH) {
+				push = true
 			}
 			fmt.Printf(" %-3s", t.flag)
 		}
 
 		if sentSync && !recvSync {
-			notHandshakedN++
+			incompleteHandshakeN++
+		}
+		if push {
+			pushN++
 		}
 
 		fmt.Println()
 	}
 
-	fmt.Printf("endpoint:%d, handshake fails:%d, SYN retrans:%d, RST:%d\n",
-		len(rp)-1,
-		notHandshakedN,
-		retransmitSync, resetN)
+	fmt.Println(strings.Repeat("=", 78))
+	fmt.Printf("%d lines, elapsed: %s\n", len(lines), time.Since(startedAt))
+	fmt.Println(strings.Repeat("=", 78))
+	fmt.Printf("%21s%8d\n", "endpoint", len(rp))
+	fmt.Printf("%21s%8d\n", "incomplete handshakes", incompleteHandshakeN)
+	fmt.Printf("%21s%8d\n", "PUSH", pushN)
+	fmt.Printf("%21s%8d\n", "SYN retry", retransmitSynN)
+	fmt.Printf("%21s%8d\n", "RST", rstN)
 
 	os.Exit(0)
 }
