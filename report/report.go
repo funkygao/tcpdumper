@@ -25,7 +25,7 @@ type trip struct {
 
 type report map[string][]trip // key is endpoint
 
-func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
+func ShowReportAndExit(startedAt time.Time, lines []string, port string, mute bool) {
 	var sessions = make(report, 1<<16)
 
 	t1 := time.Now()
@@ -59,10 +59,15 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	totalIncompleteHandshakeN := 0
 	for endpoint, trips := range sessions {
 		// the lifespan of an endpoint
-		fmt.Printf("%21s", endpoint)
+		if !mute {
+			fmt.Printf("%21s", endpoint)
+		}
 
 		if strings.HasSuffix(endpoint, "."+port) {
-			fmt.Printf(" skipped\n")
+			if !mute {
+				fmt.Printf(" skipped\n")
+			}
+
 			continue
 		}
 
@@ -108,7 +113,10 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 				totalPushN++
 			}
 
-			fmt.Printf(" %-3s", t.flag)
+			if !mute {
+				fmt.Printf(" %-3s", t.flag)
+			}
+
 		}
 
 		if sentSync && !recvSync {
@@ -118,7 +126,9 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 			totalPushSessionN++
 		}
 
-		fmt.Println()
+		if !mute {
+			fmt.Println()
+		}
 	}
 
 	totalSessionN := len(sessions)

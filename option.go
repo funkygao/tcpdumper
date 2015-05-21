@@ -11,6 +11,7 @@ var (
 		ifdev   string
 		port    string
 		rawfile string
+		mute    bool
 		max     int
 	}
 
@@ -22,6 +23,7 @@ var (
 func init() {
 	flag.StringVar(&options.ifdev, "i", "eth0", "device")
 	flag.StringVar(&options.port, "p", "", "port")
+	flag.BoolVar(&options.mute, "mute", true, "dont show detailed session info")
 	flag.StringVar(&options.rawfile, "f", "tcpdump.out", "output file of tcpdump")
 	flag.IntVar(&options.max, "max", 1<<20, "max num of tcpdump output lines to collect")
 

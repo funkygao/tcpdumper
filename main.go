@@ -31,7 +31,7 @@ func main() {
 
 	signal.RegisterSignalHandler(syscall.SIGINT, func(sig os.Signal) {
 		td.Close()
-		report.ShowReportAndExit(startedAt, lines, options.port)
+		report.ShowReportAndExit(startedAt, lines, options.port, options.mute)
 	})
 
 	fmt.Printf("running /usr/sbin/tcpdump %s ...\n", strings.Join(tcpdumpFlag, " "))
@@ -62,7 +62,7 @@ func main() {
 		n++
 		if n == options.max {
 			td.Close()
-			report.ShowReportAndExit(startedAt, lines, options.port)
+			report.ShowReportAndExit(startedAt, lines, options.port, options.mute)
 			return
 		}
 
