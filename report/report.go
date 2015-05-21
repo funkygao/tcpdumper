@@ -77,9 +77,6 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 				if syncSentN > 1 {
 					// retransmit
 					retransmitSynN++
-					t.flag = color.Colorize([]string{color.FgBlue, color.Blink},
-						t.flag)
-				} else {
 					t.flag = color.Blue(t.flag)
 				}
 			} else if strings.Contains(t.flag, SYN_RECV) {
