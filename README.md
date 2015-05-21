@@ -17,3 +17,4 @@ Note: MUST be root to run this tcpdumper.
 ### TODO
 
 - [ ] output alignment problem
+- [ ] FSM to parse each endpoint session state
