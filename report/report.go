@@ -48,17 +48,20 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		} else {
 			rp[dst] = []trip{trip{src, dst, "<" + flag}}
 		}
-
 	}
 
-	retransmitSynN := 0
-	pushN := 0
-	rstN := 0
-	incompleteHandshakeN := 0
-	port = "." + port
+	totalRetransmitSynN := 0
+	totalPushSessionN := 0
+	totalAckN := 0
+	totalPushN := 0
+	totalFinSessionN := 0
+	totalRstSessionN := 0
+	totalIncompleteHandshakeN := 0
 	for endpoint, trips := range rp {
+		// the lifespan of an endpoint
 		fmt.Printf("%21s", endpoint)
-		if strings.HasSuffix(endpoint, port) {
+
+		if strings.HasSuffix(endpoint, "."+port) {
 			fmt.Printf(" skipped\n")
 			continue
 		}
@@ -66,50 +69,61 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		syncSentN := 0
 		fin := false
 		rst := false
+		push := false
 		sentSync := false
 		recvSync := false
-		push := false
 		for _, t := range trips {
+			if strings.Contains(t.flag, ".") {
+				totalAckN++
+			}
+
 			if t.flag == SYN_SEND {
 				sentSync = true
 				syncSentN++
 				if syncSentN > 1 {
-					// retransmit
-					retransmitSynN++
+					// retransmit SYN is blue
+					totalRetransmitSynN++
 					t.flag = color.Blue(t.flag)
 				}
 			} else if strings.Contains(t.flag, SYN_RECV) {
 				recvSync = true
 			} else if strings.Contains(t.flag, FIN) {
 				if !fin {
+					// the first FIN is red
 					t.flag = color.Red(t.flag)
+					totalFinSessionN++
 				}
 				fin = true
 			} else if strings.Contains(t.flag, RST) {
 				if !rst {
-					rstN++
+					totalRstSessionN++
+					if fin {
+						totalFinSessionN--
+					}
 				}
 				rst = true
 				t.flag = color.Yellow(t.flag)
 			} else if strings.Contains(t.flag, PUSH) {
 				push = true
+				totalPushN++
 			}
+
 			fmt.Printf(" %-3s", t.flag)
 		}
 
 		if sentSync && !recvSync {
-			incompleteHandshakeN++
+			totalIncompleteHandshakeN++
 		}
 		if push {
-			pushN++
+			totalPushSessionN++
 		}
 
 		fmt.Println()
 	}
 
-	endpointN := len(rp)
-	if endpointN > 1 {
-		endpointN-- // the skipped endpoint excluded
+	totalSessionN := len(rp)
+	if totalSessionN > 1 {
+		totalSessionN-- // the skipped endpoint excluded
 	}
 
 	for _, err := range errorLines {
@@ -121,12 +135,18 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		time.Since(startedAt),
 		time.Since(t1))
 	fmt.Println(strings.Repeat("=", 78))
-	fmt.Printf("%25s:%8d\n", "endpoint", endpointN)
-	fmt.Printf("%25s:%8d\n", "incomplete handshakes", incompleteHandshakeN)
-	fmt.Printf("%25s:%8d\n", "no PUSH", endpointN-pushN)
-	fmt.Printf("%25s:%8d\n", "PUSH", pushN)
-	fmt.Printf("%25s:%8d\n", "SYN retry", retransmitSynN)
-	fmt.Printf("%25s:%8d\n", "RST", rstN)
+	fmt.Printf("%25s:%12d\n", "sessions", totalSessionN)
+	fmt.Printf("%25s:%12d\n", "PUSH", totalPushSessionN)
+	fmt.Printf("%25s:%12d\n", "incomplete handshakes",
+		totalIncompleteHandshakeN)
+	fmt.Printf("%25s:%12d\n", "SYN retry", totalRetransmitSynN)
+	fmt.Printf("%25s:%12d\n", "FIN", totalFinSessionN)
+	fmt.Printf("%25s:%12d\n", "RST", totalRstSessionN)
+	fmt.Println()
+	fmt.Printf("%25s:%12d\n", "data sent", totalPushN)
+	fmt.Printf("%25s:%12d\n", "ack sent", totalAckN)
+	fmt.Printf("%25s:%12.2f%%\n", "data/ack",
+		100*float32(totalPushN)/float32(totalAckN))
 
 	os.Exit(0)
 }
