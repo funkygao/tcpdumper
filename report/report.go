@@ -31,10 +31,11 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	var rp = make(report, 1<<16)
 
 	t1 := time.Now()
+	errorLines := make([]string, 0)
 	for _, line := range lines {
 		src, dst, flag, err := lineInfo(line)
 		if err != nil {
-			fmt.Println(err)
+			errorLines = append(errorLines, err.Error())
 			continue
 		}
 
@@ -111,6 +112,10 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	endpointN := len(rp)
 	if endpointN > 1 {
 		endpointN-- // the skipped endpoint excluded
+	}
+
+	for _, err := range errorLines {
+		fmt.Println(err)
 	}
 
 	fmt.Println(strings.Repeat("=", 78))
