@@ -10,8 +10,6 @@ import (
 	"github.com/funkygao/golib/color"
 )
 
-var errBadLine = errors.New("bad tcpdump output line")
-
 const (
 	SYN_SEND = ">S"
 	SYN_RECV = "<S"
@@ -136,7 +134,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 func lineInfo(line string) (src, dst, flag string, err error) {
 	parts := strings.Split(line, " ")
 	if len(parts) < 7 {
-		err = errBadLine
+		err = errors.New(fmt.Sprintf("bad line: %s", line))
 		return
 	}
 
