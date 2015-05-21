@@ -26,7 +26,7 @@ type trip struct {
 type report map[string][]trip // key is endpoint
 
 func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
-	var rp = make(report, 1<<16)
+	var sessions = make(report, 1<<16)
 
 	t1 := time.Now()
 	errorLines := make([]string, 0)
@@ -37,16 +37,16 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 			continue
 		}
 
-		if _, present := rp[src]; present {
-			rp[src] = append(rp[src], trip{src, dst, ">" + flag})
+		if _, present := sessions[src]; present {
+			sessions[src] = append(sessions[src], trip{src, dst, ">" + flag})
 		} else {
-			rp[src] = []trip{trip{src, dst, ">" + flag}}
+			sessions[src] = []trip{trip{src, dst, ">" + flag}}
 		}
 
-		if _, present := rp[dst]; present {
-			rp[dst] = append(rp[dst], trip{src, dst, "<" + flag})
+		if _, present := sessions[dst]; present {
+			sessions[dst] = append(sessions[dst], trip{src, dst, "<" + flag})
 		} else {
-			rp[dst] = []trip{trip{src, dst, "<" + flag}}
+			sessions[dst] = []trip{trip{src, dst, "<" + flag}}
 		}
 	}
 
@@ -57,7 +57,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 	totalFinSessionN := 0
 	totalRstSessionN := 0
 	totalIncompleteHandshakeN := 0
-	for endpoint, trips := range rp {
+	for endpoint, trips := range sessions {
 		// the lifespan of an endpoint
 		fmt.Printf("%21s", endpoint)
 
@@ -121,7 +121,7 @@ func ShowReportAndExit(startedAt time.Time, lines []string, port string) {
 		fmt.Println()
 	}
 
-	totalSessionN := len(rp)
+	totalSessionN := len(sessions)
 	if totalSessionN > 1 {
 		totalSessionN-- // the skipped endpoint excluded
 	}
